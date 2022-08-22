@@ -7,8 +7,8 @@ class DioWrapper {
   late String host;
   late String scheme;
 
-  void configure(String baseUrl, int connectTimeout, int sendTimeout,
-      int receiveTimeout, String accessToken, Auth0Client auth0client,
+  void configure(String baseUrl, int connectTimeout, int sendTimeout, int receiveTimeout, String accessToken,
+      Auth0Client auth0client,
       {bool useLoggerInterceptor = false}) {
     var parsed = Uri.parse(baseUrl);
     scheme = parsed.scheme;
@@ -47,16 +47,17 @@ class DioWrapper {
       path: path,
       queryParameters: Map.from(params),
     );
-    return parsed.query.isEmpty
-        ? parsed.toString().replaceAll('?', '')
-        : parsed.toString();
+    return parsed.query.isEmpty ? parsed.toString().replaceAll('?', '') : parsed.toString();
   }
 
   /// DIO GET
   /// take [url], concrete route
-  Future<Response> get(String url, {Map<String, dynamic>? params}) async =>
-      await dio
-          .get(url, queryParameters: params)
+  Future<Response> get(final String url, {Map<String, dynamic>? params, final Options? options}) async => await dio
+          .get(
+            url,
+            queryParameters: params,
+            options: options,
+          )
           .then((response) => response)
           .catchError((error) {
         handleError(error, _decoder);
@@ -64,8 +65,7 @@ class DioWrapper {
 
   /// DIO POST
   /// take [url], concrete route
-  Future<Response> post(String url, {body}) async =>
-      await dio.post(url, data: body).then((response) {
+  Future<Response> post(String url, {body}) async => await dio.post(url, data: body).then((response) {
         return response;
       }).catchError((error) {
         handleError(error, _decoder);

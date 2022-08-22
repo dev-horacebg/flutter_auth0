@@ -18,15 +18,13 @@ class Auth0Client {
       required this.sendTimeout,
       required this.receiveTimeout,
       this.useLoggerInterceptor = false}) {
-    _dioWrapper.configure('https://$domain', connectTimeout, sendTimeout,
-        receiveTimeout, accessToken, this,
+    _dioWrapper.configure('https://$domain', connectTimeout, sendTimeout, receiveTimeout, accessToken, this,
         useLoggerInterceptor: useLoggerInterceptor);
   }
 
   /// Updates current access token for Auth0 connection
   void updateToken(String newAccessToken) {
-    _dioWrapper.configure('https://$domain', connectTimeout, sendTimeout,
-        receiveTimeout, newAccessToken, this);
+    _dioWrapper.configure('https://$domain', connectTimeout, sendTimeout, receiveTimeout, newAccessToken, this);
   }
 
   /// Builds the full authorize endpoint url in the Authorization Server (AS) with given parameters.
@@ -38,9 +36,7 @@ class Auth0Client {
   /// [ref link]: https://auth0.com/docs/api/authentication#authorize-client
   //
   String authorizeUrl(dynamic params) {
-    assert(params['redirectUri'] != null &&
-        params['responseType'] != null &&
-        params['state'] != null);
+    assert(params['redirectUri'] != null && params['responseType'] != null && params['state'] != null);
     var query = Map.from(params)
       ..addAll({
         'redirect_uri': params['redirectUri'],
@@ -64,17 +60,14 @@ class Auth0Client {
   /// @param [String] - [params.scope] scopes requested for the issued tokens. e.g. openid profile
   /// @returns a [Future] with [Auth0User]
   /// [ref link]: https://auth0.com/docs/api-auth/grant/password#realm-support
-  Future<Auth0User> passwordGrant(
-      Map<String, String> params, String clientSecret) async {
+  Future<Auth0User> passwordGrant(Map<String, String> params, String clientSecret) async {
     assert(params['username'] != null && params['password'] != null);
 
     var payload = {
       ...params,
       'client_id': this.clientId,
       'client_secret': clientSecret,
-      'grant_type': params['realm'] != null
-          ? 'http://auth0.com/oauth/grant-type/password-realm'
-          : 'password'
+      'grant_type': params['realm'] != null ? 'http://auth0.com/oauth/grant-type/password-realm' : 'password'
     };
 
     Response res = await _dioWrapper.post('/oauth/token', body: payload);
@@ -91,9 +84,7 @@ class Auth0Client {
   /// @returns a [Future] with [Auth0User]
   /// [ref link]: https://auth0.com/docs/api-auth/grant/password#realm-support
   Future<Auth0User> passwordRealm(dynamic params) async {
-    assert(params['username'] != null &&
-        params['password'] != null &&
-        params['realm'] != null);
+    assert(params['username'] != null && params['password'] != null && params['realm'] != null);
 
     var payload = Map.from(params)
       ..addAll({
@@ -112,8 +103,7 @@ class Auth0Client {
   /// @param [String] params.phone_number user's phone number (if using phone)
   /// @param [String] params.email user's email address (is using email)
   /// @returns a [Future] with [bool]
-  Future<bool> sendOtpCode(dynamic params,
-      [String? connectionType, String? send]) async {
+  Future<bool> sendOtpCode(dynamic params, [String? connectionType, String? send]) async {
     assert(params['phone_number'] != null || params['email'] != null);
 
     var payload = Map.from(params)
@@ -170,8 +160,8 @@ class Auth0Client {
   /// Return user information using an access token
   /// Param [String] token user's access token
   /// Returns [Future] with user info
-  Future<dynamic> getUserInfo() async {
-    var res = await _dioWrapper.get('/userinfo');
+  Future<dynamic> getUserInfo({required String accessToken}) async {
+    var res = await _dioWrapper.get('/userinfo', options: Options(headers: {"Authorization": "Bearer $accessToken"}));
     return res.data;
   }
 
@@ -183,8 +173,7 @@ class Auth0Client {
   Future<dynamic> resetPassword(dynamic params) async {
     assert(params['email'] != null && params['connection'] != null);
     var payload = Map.from(params)..addAll({'client_id': this.clientId});
-    var res =
-        await _dioWrapper.post('/dbconnections/change_password', body: payload);
+    var res = await _dioWrapper.post('/dbconnections/change_password', body: payload);
     return res.data;
   }
 
@@ -198,13 +187,10 @@ class Auth0Client {
   /// @returns [Future]
   Future<dynamic> createUser(dynamic params, {isEmail = true}) async {
     if (isEmail) {
-      assert(params['email'] != null &&
-          params['password'] != null &&
-          params['connection'] != null);
+      assert(params['email'] != null && params['password'] != null && params['connection'] != null);
     } else {}
     var payload = Map.from(params)..addAll({'client_id': this.clientId});
-    if (params['metadata'] != null)
-      payload..addAll({'user_metadata': params['metadata']});
+    if (params['metadata'] != null) payload..addAll({'user_metadata': params['metadata']});
     var res = await _dioWrapper.post(
       '/dbconnections/signup',
       body: payload,
@@ -235,9 +221,7 @@ class Auth0Client {
   /// @returns a [Future] with userInfo
   /// [ref link]: https://auth0.com/docs/api-auth/grant/authorization-code-pkce
   Future<dynamic> exchange(dynamic params) async {
-    assert(params['code'] != null &&
-        params['verifier'] != null &&
-        params['redirectUri'] != null);
+    assert(params['code'] != null && params['verifier'] != null && params['redirectUri'] != null);
     var payload = Map.from(params)
       ..addAll({
         'code_verifier': params['verifier'],
@@ -254,15 +238,13 @@ class Auth0Client {
   /// @param scope the scopes requested for the issued tokens. e.g. openid profile
   /// @returns a [Future] with userInfo
   /// [ref link]: https://auth0.com/docs/api-auth/grant/authorization-code-pkce
-  Future<Auth0User> exchangeAppleAuthCode(
-      {required String subjectToken, required String scope}) async {
+  Future<Auth0User> exchangeAppleAuthCode({required String subjectToken, required String scope}) async {
     var payload = {
       'client_id': this.clientId,
       'subject_token': subjectToken,
       "scope": scope,
       "grant_type": 'urn:ietf:params:oauth:grant-type:token-exchange',
-      "subject_token_type":
-          'http://auth0.com/oauth/token-type/apple-authz-code',
+      "subject_token_type": 'http://auth0.com/oauth/token-type/apple-authz-code',
     };
     var res = await _dioWrapper.post('/oauth/token', body: payload);
     Auth0User user = Auth0User.fromMap(res.data);
