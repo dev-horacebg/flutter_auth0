@@ -178,7 +178,7 @@ class Auth0Client {
       audience: audience,
     );
 
-    final response = await _dioWrapper.patch(
+    await _dioWrapper.patch(
       'https://$domain/api/v2/users/$auth0UserId',
       body: {
         "user_metadata": metadata,
