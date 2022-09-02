@@ -165,6 +165,35 @@ class Auth0Client {
     return res.data;
   }
 
+  Future<dynamic> updateUserMetadata({
+    required final String auth0UserId,
+    required final String clientId,
+    required final String clientSecret,
+    required final String audience,
+    required final Map<String, String> metadata,
+  }) async {
+    final tokenResponse = await _getManagementApiAccessToken(
+      clientId: clientId,
+      clientSecret: clientSecret,
+      audience: audience,
+    );
+
+    final response = await _dioWrapper.patch(
+      'https://$domain/api/v2/users/$auth0UserId',
+      body: {
+        "user_metadata": metadata,
+      },
+      options: Options(
+        headers: {
+          'authorization': 'Bearer ${tokenResponse['access_token']}',
+          'content-type': 'application/json',
+        },
+      ),
+    );
+
+    return;
+  }
+
   /// Request an email with instructions to change password of a user
   /// @param [Object] parameters reset password parameters
   /// @param [String] parameters.email user's email
@@ -258,6 +287,22 @@ class Auth0Client {
     Map<String, dynamic> params = Map<String, dynamic>();
     params['auth0Client'] = _dioWrapper.encodedTelemetry();
     var res = await _dioWrapper.get('/v2/logout', params: params);
+    return res.data;
+  }
+
+  Future<dynamic> _getManagementApiAccessToken({
+    required final String clientId,
+    required final String clientSecret,
+    required final String audience,
+  }) async {
+    final res = await _dioWrapper.post('/oauth/token',
+        body: {
+          'client_id': clientId,
+          'client_secret': clientSecret,
+          'audience': audience,
+          'grant_type': 'client_credentials',
+        },
+        options: Options(headers: {'content-type': 'application/json'}));
     return res.data;
   }
 }

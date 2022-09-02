@@ -65,7 +65,17 @@ class DioWrapper {
 
   /// DIO POST
   /// take [url], concrete route
-  Future<Response> post(String url, {body}) async => await dio.post(url, data: body).then((response) {
+  Future<Response> post(final String url, {body, final Options? options}) async =>
+      await dio.post(url, data: body, options: options).then((response) {
+        return response;
+      }).catchError((error) {
+        handleError(error, _decoder);
+      });
+
+  /// DIO PATCH
+  /// take [url], concrete route
+  Future<Response> patch(final String url, {body, final Options? options}) async =>
+      await dio.patch(url, data: body, options: options).then((response) {
         return response;
       }).catchError((error) {
         handleError(error, _decoder);
